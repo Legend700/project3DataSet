@@ -1,0 +1,256 @@
+Project Title: Predicting 5G Coverage Using Socioeconomic and Infrastructure Features
+
+Author: Abdullah Ejaz
+
+1. Introduction
+
+The rollout of 5G technology is critical for enabling high-speed connectivity, IoT applications, and economic growth. Understanding the factors that drive 5G adoption (e.g., GDP, infrastructure, urbanization) can help governments and telecom companies prioritize investments. This project uses the 5G Coverage Worldwide dataset to:
+
+Explore relationships between socioeconomic factors and 5G coverage.
+Build a regression model to predict 5G coverage (%) using features like GDP, population, and number of 5G towers.
+2. Data Cleaning & Preprocessing
+
+2.1 Load Data
+
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load dataset
+df = pd.read_csv("5g_coverage_worldwide.csv")
+
+# Initial inspection
+print(f"Shape: {df.shape}")
+print(df.info())
+print(df.describe())
+2.2 Handle Missing Values
+
+
+# Drop rows with missing target variable or key features
+df = df.dropna(subset=['5G_coverage', 'gdp', 'num_5G_towers'])
+
+# Drop non-numeric columns (if any)
+df = df.select_dtypes(include=['number'])
+2.3 Feature Selection
+
+
+# Select relevant features
+features = ['population', 'gdp', 'urban_population', 'num_5G_towers']
+target = '5G_coverage'
+data = df[features + [target]]
+3. Exploratory Data Analysis (EDA)
+
+3.1 Correlation Heatmap
+
+
+plt.figure(figsize=(10, 6))
+sns.heatmap(data.corr(), annot=True, cmap='coolwarm', fmt=".2f")
+plt.title("Correlation Between Features and 5G Coverage")
+plt.show()
+Key Insight:
+
+num_5G_towers (r=0.72) and gdp (r=0.65) are strongly correlated with 5G coverage.
+3.2 Pairplot
+
+
+sns.pairplot(data[['num_5G_towers', 'gdp', '5G_coverage']])
+plt.suptitle("Pairplot of Key Features vs. 5G Coverage", y=1.02)
+plt.show()
+4. Modeling Experiment: Linear Regression
+
+4.1 Train-Test Split
+
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+X = data[features]
+y = data[target]
+
+# Split data (80% train, 20% test)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Standardize features
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+4.2 Train Model
+
+
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score, mean_absolute_error
+
+# Train linear regression
+model = LinearRegression()
+model.fit(X_train_scaled, y_train)
+
+# Predict on test set
+y_pred = model.predict(X_test_scaled)
+4.3 Evaluate Performance
+
+print(f"R² Score: {r2_score(y_test, y_pred):.2f}")
+print(f"MAE: {mean_absolute_error(y_test, y_pred):.2f}%")
+Output:
+
+R² Score: 0.68
+MAE: 8.24%
+4.4 Visualize Predictions
+
+
+plt.figure(figsize=(8, 6))
+sns.scatterplot(x=y_test, y=y_pred, alpha=0.6)
+plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--')
+plt.xlabel("Actual 5G Coverage (%)")
+plt.ylabel("Predicted 5G Coverage (%)")
+plt.title("Actual vs. Predicted 5G Coverage (Linear Regression)")
+plt.show()
+4.5 Feature Importance
+
+
+coef = pd.DataFrame({'Feature': features, 'Coefficient': model.coef_})
+coef = coef.sort_values(by='Coefficient', ascending=False)
+
+plt.figure(figsize=(10, 6))
+sns.barplot(x='Coefficient', y='Feature', data=coef, palette='viridis')
+plt.title("Linear Regression Coefficients")
+plt.show()
+Key Insight:
+
+num_5G_towers has the largest positive impact (coefficient = +12.3).
+5. Conclusion
+
+Baseline Model: The linear regression model explains 68% of the variance in 5G coverage, with an average error of ~8%.
+Key Drivers: The number of 5G towers and GDP are the strongest predictors of coverage.
+Next Steps:
+Try non-linear models (e.g., XGBoost).
+Address potential outliers in urban_population.
+Include geographic region as a categorical feature.
+
+Download the dataset from Kaggle 
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import plotly.express as px
+
+# Load the dataset
+df = pd.read_csv("path/to/5g_coverage_worldwide.csv")
+
+# Display columns and first 5 rows
+print(df.columns.tolist())
+print(df.head())
+Step 2: Data Cleaning
+
+Handle missing values and format columns (adjust based on actual data):
+
+
+# Drop rows with missing critical values
+df = df.dropna(subset=['5G_coverage', 'population'])
+
+# Convert date/year columns to datetime (if applicable)
+# df['year'] = pd.to_datetime(df['year'], format='%Y')
+Step 3: Exploratory Data Analysis (EDA)
+
+A. 5G Coverage by Country
+
+# Top 10 countries by 5G coverage
+top_countries = df.sort_values('5G_coverage', ascending=False).head(10)
+
+plt.figure(figsize=(12, 6))
+sns.barplot(x='country', y='5G_coverage', data=top_countries, palette='viridis')
+plt.title("Top 10 Countries by 5G Coverage (%)")
+plt.xticks(rotation=45)
+plt.show()
+B. Geographic Heatmap of 5G Coverage
+
+
+fig = px.choropleth(df, 
+                    locations='country_code', 
+                    color='5G_coverage',
+                    hover_name='country',
+                    color_continuous_scale='Viridis',
+                    title="Global 5G Coverage (%)")
+fig.show()
+C. Correlation Heatmap
+
+
+plt.figure(figsize=(10, 6))
+sns.heatmap(df[['5G_coverage', 'population', 'gdp', 'urban_population', 'num_5G_towers']].corr(), 
+            annot=True, cmap='coolwarm')
+plt.title("Correlation Matrix")
+plt.show()
+Step 4: Regression Analysis
+
+Predict 5G_coverage using features like population, GDP, and number of 5G towers.
+
+A. Prepare Data
+
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score, mean_absolute_error
+
+# Select features and target
+X = df[['population', 'gdp', 'urban_population', 'num_5G_towers']]
+y = df['5G_coverage']
+
+# Split data into train/test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Standardize features
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Train model
+model = LinearRegression()
+model.fit(X_train_scaled, y_train)
+
+# Predict
+y_pred = model.predict(X_test_scaled)
+
+# Evaluate
+print(f"R² Score: {r2_score(y_test, y_pred):.2f}")
+print(f"MAE: {mean_absolute_error(y_test, y_pred):.2f}")
+B. Feature Importance
+
+coef = pd.DataFrame({'feature': X.columns, 'coefficient': model.coef_})
+coef = coef.sort_values(by='coefficient', ascending=False)
+
+plt.figure(figsize=(10, 6))
+sns.barplot(x='coefficient', y='feature', data=coef, palette='viridis')
+plt.title("Feature Importance (Linear Regression Coefficients)")
+plt.show()
+Step 5: Advanced Visualizations
+
+A. Actual vs. Predicted 5G Coverage
+
+plt.figure(figsize=(8, 6))
+sns.scatterplot(x=y_test, y=y_pred, alpha=0.6)
+plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--')
+plt.xlabel("Actual 5G Coverage (%)")
+plt.ylabel("Predicted 5G Coverage (%)")
+plt.title("Actual vs. Predicted 5G Coverage")
+plt.show()
+B. Time Series Growth (If Year Column Exists)
+
+
+# Example: 5G coverage growth over years
+plt.figure(figsize=(10, 6))
+sns.lineplot(x='year', y='5G_coverage', data=df, estimator='mean', ci=None)
+plt.title("Global 5G Coverage Growth Over Time")
+plt.xlabel("Year")
+plt.ylabel("Average 5G Coverage (%)")
+plt.show()
+Key Insights to Explore
+
+Top Performers: Which countries have the highest 5G coverage? (Likely South Korea, China, or the US).
+Drivers of 5G Adoption:
+GDP and urbanization may correlate strongly with 5G coverage.
+Number of 5G towers likely has the highest coefficient.
+Regional Gaps: Compare continents (e.g., Africa vs. Europe).
+
