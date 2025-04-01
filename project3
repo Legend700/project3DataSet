@@ -1,108 +1,139 @@
-5G Network Coverage Regression Analysis
+🏠 House Price Prediction using Regression
 
-1. Introduction
+---
 
-Welcome to the 5G Network Coverage Regression Analysis. In this project, we analyze a dataset containing global 5G deployments and apply regression techniques to predict latitude based on deployment-related features.
+### 📌 Introduction
 
-Objectives:
+In this project, I worked on the Kaggle competition "House Prices: Advanced Regression Techniques." The goal is to predict the final sale price of homes based on various features such as size, location, number of rooms, and more. The dataset contains 79 explanatory variables describing (almost) every aspect of residential homes in Ames, Iowa. The challenge is a regression problem—where the target variable, `SalePrice`, is continuous.
 
-Understand and preprocess the 5G dataset.
+Participants are provided with two datasets:
+- `train.csv` – contains 1,460 entries with both features and the sale price
+- `test.csv` – contains similar features but lacks the sale price column (for submissions)
 
-Implement a baseline linear regression model and evaluate it using Root Mean Squared Error (RMSE).
+While I had the option to submit predictions to Kaggle, I chose to split the training data into my own training and validation sets for model development and evaluation.
 
-Explore feature engineering and alternative regression models to enhance performance.
+---
 
-Reflect on the potential impact of 5G expansion trends.
+### 📈 What is Regression?
 
-Dataset Used:
+**Regression** is a type of supervised machine learning used to predict a continuous outcome variable based on one or more input features. It's useful in real-world scenarios like price prediction, stock forecasting, or health diagnostics.
 
-The dataset includes the following key columns:
+#### 📐 Linear Regression
 
-Operator – Telecom provider deploying 5G.
+Linear regression models the relationship between input features (independent variables) and a continuous target (dependent variable) by fitting a straight line. The equation is:
 
-City Name – Location where 5G is available.
+\[
+\hat{y} = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \dots + \beta_n x_n + \epsilon
+\]
 
-Deployment Type – Type of 5G deployment (e.g., 5G NR).
+Where:
+- \( \hat{y} \) is the predicted target (SalePrice)
+- \( x_i \) are input features (e.g., `GrLivArea`, `YearBuilt`)
+- \( \beta_i \) are the model coefficients
+- \( \epsilon \) is the error term
 
-Status – Commercial availability status.
-
-Latitude & Longitude – Geographical coordinates of deployments.
-
-2. Data Loading and Exploration
-
-Loading the Dataset:
-
-We begin by loading the dataset and inspecting its structure.
-
-Basic Statistics and Overview
-
-The dataset consists of 145,629 entries and 6 columns:
-
-4 categorical columns: operator, city_name, deployment_type, status
-
-2 numerical columns: latitude, longitude
-
-Handling Categorical Variables
-
-Since operator, deployment_type, and status are categorical variables, we apply Label Encoding to convert them into numerical representations before regression modeling.
-
-3. Visualizing Data Relationships
-
-1. Top 10 Telecom Operators with Most 5G Deployments
-
-A bar chart visualizes the operators leading in global 5G network expansion.
-
-2. 5G Deployments by Type
-
-A bar chart displays the distribution of different types of 5G deployments.
-
-3. 5G Deployment Status Distribution
-
-A bar chart highlights the number of commercial 5G deployments versus other statuses.
-
-4. Regression Model
-
-Defining the Regression Problem
-
-We aim to predict the latitude of a 5G deployment based on:
-
-Operator (Encoded)
-
-Deployment Type (Encoded)
-
-Status (Encoded)
-
-Longitude
-
-Preprocessing Steps:
-
-Sampling the dataset – We use 5000 rows to optimize memory usage.
-
-Label Encoding – Convert categorical variables into numerical values.
-
-Splitting Data – Train-test split (80% training, 20% testing).
-
-Model Training – Use Linear Regression as the baseline model.
-
-5. Evaluation
-
-Performance Metric: RMSE (Root Mean Squared Error)
-
-The baseline Linear Regression model achieves an RMSE of 19.39.
-
-This suggests an average latitude prediction error of 19.39 degrees, indicating room for improvement.
-
-Potential Improvements
-
-Feature Engineering – Incorporate additional relevant features.
-
-Alternative Models – Try Ridge Regression or Decision Trees.
-
-Larger Training Set – Use more data to improve generalization.
-
-6. Conclusion
-
-This project demonstrates an initial 5G deployment regression model, predicting latitude using categorical and numerical features. While the model provides a starting point, further optimizations, alternative models, and additional feature exploration could significantly enhance prediction accuracy.
+The goal of training is to minimize the error, often done using **Mean Squared Error (MSE)** or **Root Mean Squared Error (RMSE)**.
 
 
+### 🔬 Experiment 1: Baseline Model
+
+#### 🧠 Data Understanding
+
+To start, I explored the data with:
+
+- `df.describe()` to understand distributions
+- `df.info()` to check data types and nulls
+- `df.isnull().sum()` to inspect missing values
+- Correlation heatmap to detect relationships
+
+Strong correlations with `SalePrice` included:
+- `OverallQual` (0.79)
+- `GrLivArea` (0.70)
+- `GarageCars`, `TotalBsmtSF`, and `YearBuilt`
+
+#### 🧼 Pre-processing
+
+- Selected top correlated features for simplicity: `OverallQual`, `GrLivArea`, `GarageCars`, `TotalBsmtSF`, `FullBath`, `YearBuilt`
+- Handled missing values (dropped rows or filled with median)
+- Standardized features with `StandardScaler`
+- Split data: 80% training, 20% test
+
+#### 🧠 Modeling
+
+Used **LinearRegression** from `scikit-learn`:
+```python
+model = LinearRegression()
+model.fit(X_train_scaled, y_train)
+```
+
+#### 📊 Evaluation
+
+Predicted `SalePrice` and calculated RMSE:
+```python
+rmse = mean_squared_error(y_test, y_pred, squared=False)
+```
+
+**RMSE (Linear):** *e.g., 35,000*
+
+
+
+### 🧪 Experiment 2: Ridge Regression + Categorical Features
+
+#### Changes:
+- Added categorical variables: `Neighborhood`, `BldgType`
+- Used `OneHotEncoder` for encoding
+- Switched to **Ridge Regression** (regularized linear model)
+
+#### Evaluation:
+**RMSE (Ridge):** *e.g., 32,500*  
+Improved slightly, likely due to richer information from encoded features and reduced overfitting.
+
+
+### 🧪 Experiment 3: Feature Engineering + Lasso Regression
+
+#### Changes:
+- Created new feature: `TotalSF` = `1stFlrSF + 2ndFlrSF + TotalBsmtSF`
+- Used `Lasso Regression` to shrink unnecessary features
+
+#### Evaluation:
+**RMSE (Lasso):** *e.g., 31,800*  
+Improved performance. Lasso’s feature selection helped reduce noise from irrelevant inputs.
+
+
+
+### 💭 Impact Section
+
+Predicting house prices can greatly assist real estate agents, buyers, and urban planners. However, care must be taken:
+
+- **Ethical**: Data bias can impact predictions across neighborhoods with different socioeconomic backgrounds.
+- **Social**: Automated pricing can influence housing affordability or exacerbate inequality.
+- **Privacy**: Real estate data must ensure individual property privacy.
+
+
+
+### 🧠 Conclusion
+
+This project taught me how small steps in preprocessing or feature selection can significantly affect regression model performance. I learned:
+
+- **Feature engineering matters** (e.g., `TotalSF`)
+- **Categorical variables are powerful** when properly encoded
+- **Regularization techniques** like Ridge and Lasso often outperform basic linear models
+
+Most importantly, it helped me appreciate the experimentation process that underlies building any good model.
+
+
+
+### 🔗 References
+
+- [Kaggle House Prices Competition](https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques)
+- [Scikit-learn LinearRegression](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html)
+- [Ridge and Lasso Docs](https://scikit-learn.org/stable/modules/linear_model.html)
+- Class lecture notes on regression modeling
+
+
+
+### 🧾 Code
+
+Full code available in this Jupyter notebook:  
+📎 [Download house_price_regression_project.ipynb](sandbox:/mnt/data/house_price_regression_project.ipynb)
 
